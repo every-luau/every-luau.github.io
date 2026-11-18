@@ -1,4 +1,4 @@
-# not-another-luau-lib.github.io
+# every-luau.github.io
 
 Documentation site for every library of the org, built with [Fumadocs](https://fumadocs.dev) and
 [fumablox](https://github.com/metricrb/fumablox) from each library's Moonwave comments.

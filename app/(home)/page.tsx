@@ -10,7 +10,7 @@ export default function HomePage() {
     <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-16 px-4 py-16 md:px-6 md:py-24">
       <section className="flex flex-col items-start gap-6">
         <h1 className="text-4xl font-semibold tracking-tight md:text-5xl">
-          not-another-<span className="text-fd-primary">luau</span>-lib
+          every<span className="text-fd-primary">.luau</span>
         </h1>
         <p className="max-w-xl text-lg text-fd-muted-foreground">
           A collection of small, focused Luau libraries for Roblox. Each one does a single thing, is fully

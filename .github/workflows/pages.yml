@@ -33,10 +33,10 @@ jobs:
 
       # Without blobs until they are needed, but with the whole history for when files last changed.
       - name: Clone the libraries monorepo
-        run: git clone --quiet --filter=blob:none "https://github.com/${{ github.repository_owner }}/nall.git" nall
+        run: git clone --quiet --filter=blob:none "https://github.com/${{ github.repository_owner }}/every.git" every
 
       - run: npm ci
-      - run: npm run generate -- nall/libraries
+      - run: npm run generate -- every/libraries
         env:
           GH_TOKEN: ${{ github.token }}
       - run: npm run build

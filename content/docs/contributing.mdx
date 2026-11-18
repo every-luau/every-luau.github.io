@@ -6,8 +6,8 @@ icon: GitPullRequest
 
 ## Layout of a library
 
-Every library is its own repository in the
-[not-another-luau-lib](https://github.com/not-another-luau-lib) organization, with the same layout:
+Every library is a folder of `libraries/` in the [every](https://github.com/every-luau/every)
+repository, with the same layout:
 
 <Files>
   <Folder name="src" defaultOpen>
@@ -27,7 +27,7 @@ Every library is its own repository in the
 - `src` holds the library itself, `tests` its [lest](https://github.com/lest-luau/lest) specs.
 - `ember.toml`, `pesde.toml` and `wally.toml` describe the package for each registry, and must
   keep the same version.
-- `fumablox.toml` configures how the API reference is generated. A repository without it does not
+- `fumablox.toml` configures how the API reference is generated. A library without it does not
   appear on this site.
 
 ## Documenting
@@ -66,6 +66,6 @@ is merged.
 
 ## Releasing
 
-A library shows up on this site once its repository is public on GitHub. Its install instructions
-list every registry it is published to. The site is rebuilt when the library's CI pushes to
+A library shows up on this site once it has a `fumablox.toml` in the every repository. Its install instructions
+list every registry it is published to. The site is rebuilt when CI passes on
 `main`, and every six hours otherwise, so new releases show up on their own.

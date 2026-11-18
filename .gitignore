@@ -25,7 +25,7 @@ yarn-error.log*
 .vercel
 next-env.d.ts
 # monorepo cloned by CI, and what scripts/generate.mjs generates from it
-/nall/
+/every/
 /libraries/
 /content/docs/(libraries)/
 /content/libraries.json

@@ -4,7 +4,7 @@
 //   node scripts/generate.mjs [librariesDir] [--all]
 //
 // librariesDir holds one folder per library, each with its own fumablox.toml.
-// CI clones the nall monorepo and points it at nall/libraries; locally, point it at ../libraries.
+// CI clones the every monorepo and points it at every/libraries; locally, point it at ../libraries.
 // A library is listed once its gitRepoUrl is a public GitHub repository and it documents
 // something; --all lists unpublished ones too, to preview them locally. Versions come from
 // ember, pesde and wally. Set GH_TOKEN to avoid GitHub's rate limit.
