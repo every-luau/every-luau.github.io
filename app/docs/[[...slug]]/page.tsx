@@ -9,11 +9,58 @@ import {
   ViewOptionsPopover,
 } from 'fumadocs-ui/layouts/docs/page';
 import { buttonVariants } from 'fumadocs-ui/components/ui/button';
-import { GitHubIcon } from '@/components/api';
+import { GitHubIcon, KindIcon, type MemberKind } from '@/components/api';
 import { notFound } from 'next/navigation';
 import { getMDXComponents } from '@/components/mdx';
 import type { Metadata } from 'next';
 import { createRelativeLink } from 'fumadocs-ui/mdx';
+import { isValidElement, type ReactNode } from 'react';
+import type { TOCItemType } from 'fumadocs-core/toc';
+
+// The sections scripts/api.mjs writes, and what kind of member each heading under them is.
+const sectionKinds: Record<string, MemberKind> = {
+  Types: 'type',
+  Properties: 'property',
+  Constants: 'property',
+  Events: 'event',
+  Functions: 'function',
+  Methods: 'method',
+};
+
+function textOf(node: ReactNode): string {
+  if (typeof node === 'string' || typeof node === 'number') return String(node);
+  if (Array.isArray(node)) return node.map(textOf).join('');
+  if (isValidElement<{ children?: ReactNode }>(node)) return textOf(node.props.children);
+  return '';
+}
+
+// Members of API pages are shown in the table of contents with the icon of their kind and their
+// name in code, like the summary at the top of the page, so the sidebar reads as an index.
+function decorateToc(toc: TOCItemType[]): TOCItemType[] {
+  return toc.map((item, i) => {
+    let parent: TOCItemType | undefined;
+    for (let j = i - 1; j >= 0; j--) {
+      if (toc[j].depth < item.depth) {
+        parent = toc[j];
+        break;
+      }
+    }
+
+    const kind = parent && parent.depth === item.depth - 1 ? sectionKinds[textOf(parent.title)] : undefined;
+    if (!kind) return item;
+
+    const name = textOf(item.title).replace(/^[.:]/, '');
+    return {
+      ...item,
+      title: (
+        <span className="inline-flex items-center gap-1.5">
+          <KindIcon kind={kind} />
+          <span className="font-mono text-[0.8125rem]">{name}</span>
+        </span>
+      ),
+    };
+  });
+}
 
 export default async function Page(props: PageProps<'/docs/[[...slug]]'>) {
   const params = await props.params;
@@ -27,7 +74,7 @@ export default async function Page(props: PageProps<'/docs/[[...slug]]'>) {
   const { repository, lastModified } = page.data;
 
   return (
-    <DocsPage toc={page.data.toc} full={page.data.full} footer={{ enabled: !repository }}>
+    <DocsPage toc={repository ? decorateToc(page.data.toc) : page.data.toc} full={page.data.full} footer={{ enabled: !repository }}>
       <DocsTitle>{page.data.title}</DocsTitle>
       <DocsDescription className="mb-0">{page.data.description}</DocsDescription>
       <div className="flex flex-row gap-2 items-center border-b pb-6">

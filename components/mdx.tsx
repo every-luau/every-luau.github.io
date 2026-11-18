@@ -5,7 +5,7 @@ import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
 import { Step, Steps } from 'fumadocs-ui/components/steps';
 import { File, Files, Folder } from 'fumadocs-ui/components/files';
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
-import { Badges, Signature, TypeCode } from '@/components/api';
+import { Badges, Signature, Summary, TypeCode } from '@/components/api';
 import type { MDXComponents } from 'mdx/types';
 
 export function getMDXComponents(components?: MDXComponents) {
@@ -24,6 +24,7 @@ export function getMDXComponents(components?: MDXComponents) {
     Tabs,
     Badges,
     Signature,
+    Summary,
     TypeCode,
     ...components,
   } satisfies MDXComponents;

@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { getHighlighter } from 'fumadocs-core/highlight';
+import { Box, Shapes, SquareFunction, Zap } from 'lucide-react';
 import { cn } from '@/lib/cn';
 
 // Components for the API pages that scripts/generate.mjs builds from fumablox's extract.
@@ -158,6 +159,89 @@ export async function Signature({
       <Name text={name} bold />
       <Colored segments={await luau('type _ = ', body)} links={links} />
     </SignatureBlock>
+  );
+}
+
+// What a member of a class is, shown as a colored icon in the summary and the table of contents.
+export type MemberKind = 'type' | 'property' | 'function' | 'method' | 'event';
+
+const kindIcons = {
+  type: { Icon: Shapes, className: 'text-emerald-600 dark:text-emerald-400', label: 'Type' },
+  property: { Icon: Box, className: 'text-sky-600 dark:text-sky-400', label: 'Property' },
+  function: { Icon: SquareFunction, className: 'text-violet-600 dark:text-violet-400', label: 'Function' },
+  method: { Icon: SquareFunction, className: 'text-fuchsia-600 dark:text-fuchsia-400', label: 'Method' },
+  event: { Icon: Zap, className: 'text-amber-600 dark:text-amber-400', label: 'Event' },
+} satisfies Record<MemberKind, unknown>;
+
+export function KindIcon({ kind, className }: { kind: MemberKind; className?: string }) {
+  const { Icon, className: color, label } = kindIcons[kind];
+  return <Icon aria-label={label} className={cn('size-3.5 shrink-0', color, className)} />;
+}
+
+export interface SummaryItem {
+  kind: MemberKind;
+  name: string;
+  href: string;
+  // functions and methods
+  params?: SignatureParam[];
+  returns?: string[];
+  // properties and events
+  type?: string;
+  badges?: { label: string; variant?: BadgeVariant }[];
+}
+
+// One line per member, like `add(item: T): T`, linking to its section further down the page.
+async function SummaryLine({ item, links }: { item: SummaryItem; links?: Links }) {
+  if (item.kind === 'type') {
+    return <Colored segments={await luau('', `type ${item.name}`, ' = nil')} links={links} />;
+  }
+  if (item.kind === 'property' || item.kind === 'event') {
+    return (
+      <>
+        <span className="font-semibold">{item.name}</span>
+        <Colored segments={await luau(`type _ = { ${item.name}`, `: ${item.type ?? 'any'}`, ' }')} links={links} />
+      </>
+    );
+  }
+
+  const params = (item.params ?? []).map((p) => `${p.name}${p.type ? `: ${p.type}` : ''}`).join(', ');
+  const returns = item.returns ?? [];
+  const ret = returns.length === 0 ? '()' : returns.length === 1 ? returns[0] : `(${returns.join(', ')})`;
+  return (
+    <>
+      <span className="font-semibold">{item.name}</span>
+      <Colored segments={await luau(`function ${item.name}`, `(${params}): ${ret}`, ' end')} links={links} />
+    </>
+  );
+}
+
+export async function Summary({ items, links }: { items: SummaryItem[]; links?: Links }) {
+  return (
+    <ul className="not-prose my-4 divide-y overflow-hidden rounded-xl border bg-fd-card">
+      {await Promise.all(
+        items.map(async (item) => (
+          <li key={item.href} className="relative flex items-start gap-2.5 px-3 py-2 transition-colors hover:bg-fd-accent">
+            {/* The whole row links to the member; only the type links inside it sit above. */}
+            <a href={item.href} aria-label={item.name} className="absolute inset-0" />
+            <KindIcon kind={item.kind} className="pointer-events-none relative mt-[3px]" />
+            <code className="pointer-events-none relative min-w-0 flex-1 font-mono text-[0.8125rem] leading-relaxed break-words [&_a]:pointer-events-auto">
+              <SummaryLine item={item} links={links} />
+            </code>
+            {item.badges?.map((badge) => (
+              <span
+                key={badge.label}
+                className={cn(
+                  'pointer-events-none relative shrink-0 rounded-md border px-1.5 py-0.5 font-mono text-[11px] font-medium',
+                  badgeVariants[badge.variant ?? 'default'],
+                )}
+              >
+                {badge.label}
+              </span>
+            ))}
+          </li>
+        )),
+      )}
+    </ul>
   );
 }
 

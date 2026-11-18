@@ -276,6 +276,56 @@ function functionSection(title, fns, cls, ctx, config, h) {
   ];
 }
 
+// Every member on one line each, grouped like the sections below and linking to them, so a class
+// can be read at a glance before its details.
+function summarySection(cls, others, ctx, h) {
+  const summaryBadges = (member) => [
+    ...(member.yields ? [{ label: 'Yields', variant: 'yields' }] : []),
+    ...(member.deprecated ? [{ label: 'Deprecated', variant: 'deprecated' }] : []),
+  ];
+  const value = (kind) => (member) => ({
+    kind,
+    name: member.name,
+    href: `#${h.id(member.name)}`,
+    type: member.luaType ?? member.value ?? 'any',
+    badges: summaryBadges(member),
+  });
+  const fn = (kind) => (member) => ({
+    kind,
+    name: member.name,
+    href: `#${h.id(member.name)}`,
+    params: member.params.map((p) => ({ name: p.optional ? `${p.name}?` : p.name, type: p.luaType })),
+    returns: member.returns.map((r) => r.luaType ?? 'any'),
+    badges: summaryBadges(member),
+  });
+
+  const type = (member) => ({ kind: 'type', name: member.name, href: `#${h.id(member.name)}`, badges: summaryBadges(member) });
+  const sorted = (members) => members.filter(visible).sort(byName);
+
+  const groups = [
+    ['Types', sorted(cls.types).map(type)],
+    ['Properties', sorted([...cls.properties, ...cls.constants]).map(value('property'))],
+    ['Events', sorted(cls.events).map(value('event'))],
+    ['Functions', sorted(others.filter((f) => f.functionKind !== 'method')).map(fn('function'))],
+    ['Methods', sorted(others.filter((f) => f.functionKind === 'method')).map(fn('method'))],
+  ].filter(([, items]) => items.length > 0);
+  if (groups.length === 0) return [];
+
+  const types = groups.flatMap(([, items]) => items.flatMap((item) => [item.type, ...(item.params ?? []).map((p) => p.type), ...(item.returns ?? [])]));
+  const links = linksFor(ctx, ...types);
+
+  return [
+    `${h.section} Summary [#${h.id('summary')}]`,
+    '',
+    ...groups.flatMap(([title, items]) => [
+      `${h.member} ${title} [#${h.id(`summary-${title.toLowerCase()}`)}]`,
+      '',
+      `<Summary items=${attr(items)} links=${attr(links)} />`,
+      '',
+    ]),
+  ];
+}
+
 function classBody(cls, ctx, config, nested, after = []) {
   const h = layout(cls, nested);
   const intro = nested
@@ -289,6 +339,7 @@ function classBody(cls, ctx, config, nested, after = []) {
     ...intro,
     '',
     ...deprecation(cls, ctx),
+    ...summarySection(cls, others, ctx, h),
     ...after,
     ...returnsSection(returned, cls, ctx, config, h),
     ...typeSection(cls, ctx, config, h),
