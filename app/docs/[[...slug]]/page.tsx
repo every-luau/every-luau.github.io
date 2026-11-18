@@ -9,12 +9,13 @@ import {
   ViewOptionsPopover,
 } from 'fumadocs-ui/layouts/docs/page';
 import { buttonVariants } from 'fumadocs-ui/components/ui/button';
-import { GitHubIcon, KindIcon, type MemberKind } from '@/components/api';
+import { GitHubIcon, KindIcon, Member, type MemberKind } from '@/components/api';
+import { Heading } from 'fumadocs-ui/components/heading';
 import { notFound } from 'next/navigation';
 import { getMDXComponents } from '@/components/mdx';
 import type { Metadata } from 'next';
 import { createRelativeLink } from 'fumadocs-ui/mdx';
-import { isValidElement, type ReactNode } from 'react';
+import { isValidElement, type ComponentProps, type ReactNode } from 'react';
 import type { TOCItemType } from 'fumadocs-core/toc';
 
 // The sections scripts/api.mjs writes, and what kind of member each heading under them is.
@@ -22,6 +23,7 @@ const sectionKinds: Record<string, MemberKind> = {
   Types: 'type',
   Properties: 'property',
   Constants: 'property',
+  Enums: 'type',
   Events: 'event',
   Functions: 'function',
   Methods: 'method',
@@ -34,10 +36,11 @@ function textOf(node: ReactNode): string {
   return '';
 }
 
-// Members of API pages are shown in the table of contents with the icon of their kind and their
-// name in code, like the summary at the top of the page, so the sidebar reads as an index.
-function decorateToc(toc: TOCItemType[]): TOCItemType[] {
-  return toc.map((item, i) => {
+// The kind of each member of an API page, by the id of its heading: headings right under one of
+// the sections above.
+function memberKinds(toc: TOCItemType[]): Map<string, MemberKind> {
+  const kinds = new Map<string, MemberKind>();
+  toc.forEach((item, i) => {
     let parent: TOCItemType | undefined;
     for (let j = i - 1; j >= 0; j--) {
       if (toc[j].depth < item.depth) {
@@ -45,8 +48,17 @@ function decorateToc(toc: TOCItemType[]): TOCItemType[] {
         break;
       }
     }
-
     const kind = parent && parent.depth === item.depth - 1 ? sectionKinds[textOf(parent.title)] : undefined;
+    if (kind) kinds.set(item.url.slice(1), kind);
+  });
+  return kinds;
+}
+
+// Members are shown with the icon of their kind and their name in code, in the table of contents
+// like in their heading and the summary, so the sidebar reads as an index.
+function decorateToc(toc: TOCItemType[], kinds: Map<string, MemberKind>): TOCItemType[] {
+  return toc.map((item) => {
+    const kind = kinds.get(item.url.slice(1));
     if (!kind) return item;
 
     const name = textOf(item.title).replace(/^[.:]/, '');
@@ -62,6 +74,18 @@ function decorateToc(toc: TOCItemType[]): TOCItemType[] {
   });
 }
 
+// Headings of members get the same icon, before their name in code.
+function memberHeading(as: 'h3' | 'h4' | 'h5', kinds: Map<string, MemberKind>) {
+  return function MemberHeading({ id, children, ...props }: ComponentProps<'h3'>) {
+    const kind = id ? kinds.get(id) : undefined;
+    return (
+      <Heading as={as} id={id} {...props}>
+        {kind ? <Member kind={kind}>{children}</Member> : children}
+      </Heading>
+    );
+  };
+}
+
 export default async function Page(props: PageProps<'/docs/[[...slug]]'>) {
   const params = await props.params;
   const page = source.getPage(params.slug);
@@ -72,9 +96,10 @@ export default async function Page(props: PageProps<'/docs/[[...slug]]'>) {
   // Library pages link to their repository and show when their source last changed instead of
   // the previous/next page.
   const { repository, lastModified } = page.data;
+  const kinds = repository ? memberKinds(page.data.toc) : new Map<string, MemberKind>();
 
   return (
-    <DocsPage toc={repository ? decorateToc(page.data.toc) : page.data.toc} full={page.data.full} footer={{ enabled: !repository }}>
+    <DocsPage toc={decorateToc(page.data.toc, kinds)} full={page.data.full} footer={{ enabled: !repository }}>
       <DocsTitle>
         {repository && page.data.icon && <span className="me-2">{page.data.icon}</span>}
         {page.data.title}
@@ -102,6 +127,9 @@ export default async function Page(props: PageProps<'/docs/[[...slug]]'>) {
           components={getMDXComponents({
             // this allows you to link to other pages with relative file paths
             a: createRelativeLink(source, page),
+            h3: memberHeading('h3', kinds),
+            h4: memberHeading('h4', kinds),
+            h5: memberHeading('h5', kinds),
           })}
         />
       </DocsBody>

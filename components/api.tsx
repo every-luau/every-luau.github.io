@@ -178,6 +178,16 @@ export function KindIcon({ kind, className }: { kind: MemberKind; className?: st
   return <Icon aria-label={label} className={cn('size-3.5 shrink-0', color, className)} />;
 }
 
+// The title of a member's heading: its icon, then its name in code.
+export function Member({ kind, children }: { kind: MemberKind; children: ReactNode }) {
+  return (
+    <span className="inline-flex items-center gap-2 [&>svg]:size-[0.9em]">
+      <KindIcon kind={kind} />
+      <span className="font-mono text-[0.9em]">{children}</span>
+    </span>
+  );
+}
+
 export interface SummaryItem {
   kind: MemberKind;
   name: string;

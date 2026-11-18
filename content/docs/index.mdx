@@ -4,22 +4,50 @@ description: Small, focused Luau libraries for Roblox.
 icon: House
 ---
 
-Every is a collection of small Luau libraries for Roblox. Each one does a single
-thing, has no dependency it does not need, and is fully typed.
+import { BookOpen, Compass, GitPullRequest, Link2, Puzzle, Rocket, ShieldCheck } from 'lucide-react';
 
-- **One package per library.** Every library is versioned, tested and released on its own,
-  so you only pull in what you use.
-- **Published everywhere.** Libraries are published to [ember](https://luaupm.com),
-  [pesde](https://pesde.dev) and [wally](https://wally.run) under the same version.
-- **Documented from source.** The API reference of each library is generated from its Moonwave
-  comments, so it never drifts from the code.
+Every is a set of small Luau libraries for Roblox. Each one solves a single problem, is typed for
+Luau's new type solver, and is installed on its own, so a project only carries what it uses.
+
+```lua
+local Signal = require(Packages.Signal)
+local Void = require(Packages.Void)
+
+local died = Signal.new()
+local cleanup = Void.new()
+
+cleanup:add(died:connect(function(cause)
+	print("died from", cause)
+end))
+
+died:fire("lava")
+cleanup:clean() -- disconnects everything added to it
+```
+
+## What you get
+
+<Cards>
+  <Card icon={<Puzzle />} title="One problem per library">
+    Thread recycles threads, Signal fires handlers, Void cleans up. Nothing is bundled you did not ask for.
+  </Card>
+  <Card icon={<Link2 />} title="Made to fit together">
+    Libraries build on each other: Signal and Observable hand out the same Connection, and cleanup goes through Void.
+  </Card>
+  <Card icon={<ShieldCheck />} title="Typed and tested">
+    Every library is typed for the new solver and tested before each release.
+  </Card>
+  <Card icon={<BookOpen />} title="Documented from source">
+    The pages under Libraries are generated from the comments in the code, so they never drift from it.
+  </Card>
+</Cards>
 
 ## Where to go next
 
 <Cards>
-  <Card title="Getting Started" href="/docs/getting-started" description="Add a library to your project with ember, pesde or wally." />
-  <Card title="Contributing" href="/docs/contributing" description="How libraries are laid out, tested and released." />
+  <Card icon={<Rocket />} title="Getting Started" href="/docs/getting-started" description="Install a library with wally, pesde or ember and require it." />
+  <Card icon={<Compass />} title="Ideology" href="/docs/ideology" description="What every library follows, and where AI is and is not used." />
+  <Card icon={<GitPullRequest />} title="Contributing" href="/docs/contributing" description="How the repository is laid out, and how a library is tested and released." />
 </Cards>
 
-Every published library is listed in the sidebar under **Libraries**, each with the API of
-every one of its modules.
+Every library is listed in the sidebar under **Libraries**. Its page starts with a summary of
+everything it exposes, then documents each member in detail.

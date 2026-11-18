@@ -144,6 +144,10 @@ const layout = (cls, nested) => ({
   id: (name) => (nested ? `${cls.name}-${name}` : name),
 });
 
+// A member's heading stays plain text: the docs page adds the icon of its kind (see
+// app/docs/[[...slug]]/page.tsx), since headings also become the table of contents.
+const memberHeading = (h, label, name) => `${h.member} ${label} [#${h.id(name)}]`;
+
 function typeSection(cls, ctx, config, h) {
   const types = cls.types.filter(visible).sort(byName);
   if (types.length === 0) return [];
@@ -151,7 +155,7 @@ function typeSection(cls, ctx, config, h) {
     `${h.section} Types`,
     '',
     ...types.flatMap((type) => [
-      `${h.member} ${type.name} [#${h.id(type.name)}]`,
+      memberHeading(h, type.name, type.name),
       '',
       ...badgeLine(type, config),
       ...deprecation(type, ctx),
@@ -176,7 +180,7 @@ function valueSection(title, members, cls, ctx, config, h) {
     `${h.section} ${title}`,
     '',
     ...list.flatMap((member) => [
-      `${h.member} ${member.name} [#${h.id(member.name)}]`,
+      memberHeading(h, member.name, member.name),
       '',
       ...badgeLine(member, config, member.readonly ? [{ label: 'Read only' }] : []),
       ...deprecation(member, ctx),
@@ -195,7 +199,7 @@ function enumSection(cls, ctx, config, h) {
     `${h.section} Enums`,
     '',
     ...enums.flatMap((item) => [
-      `${h.member} ${item.name} [#${h.id(item.name)}]`,
+      memberHeading(h, item.name, item.name),
       '',
       ...badgeLine(item, config),
       markdown(item.description, ctx),
@@ -268,7 +272,7 @@ function functionSection(title, fns, cls, ctx, config, h) {
     ...fns.sort(byName).flatMap((fn) => {
       const separator = fn.functionKind === 'method' ? ':' : '.';
       return [
-        `${h.member} ${separator}${fn.name} [#${h.id(fn.name)}]`,
+        memberHeading(h, `${separator}${fn.name}`, fn.name),
         '',
         ...functionBody(fn, { owner: cls.name, separator, name: fn.name }, ctx, config),
       ];

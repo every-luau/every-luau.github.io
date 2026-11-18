@@ -1,48 +1,25 @@
 ---
 title: Getting Started
-description: Add a library to your project with ember, pesde or wally.
+description: Install a library with wally, pesde or ember and require it.
 icon: Rocket
 ---
 
-Every library is published to wally, pesde and ember under the same name, `every/<library>`
-(for example `every/thread`).
+<Steps>
+<Step>
 
-The API page of each library shows its latest version for every registry it is on.
+### Pick a library
 
-## Installing
+Every library is published under the same name on each registry: `every/` followed by the
+library's name in lowercase, for example `every/thread` or `every/signal`. Its page, under
+**Libraries** in the sidebar, shows the exact name and latest version on each registry.
+
+</Step>
+<Step>
+
+### Add it to your manifest
 
 <Tabs items={['wally', 'pesde', 'ember']}>
-  <Tab value="ember">
-
-Add the library to `ember.toml`, then install:
-
-```toml title="ember.toml"
-[dependencies]
-Thread = { name = "every/thread", version = "^0.1.0" }
-```
-
-```bash
-embr install
-```
-
-  </Tab>
-  <Tab value="pesde">
-
-Add the library to `pesde.toml`, then install:
-
-```toml title="pesde.toml"
-[dependencies]
-Thread = { name = "every/thread", version = "^0.1.0" }
-```
-
-```bash
-pesde install
-```
-
-  </Tab>
   <Tab value="wally">
-
-Add the library to `wally.toml`, then install:
 
 ```toml title="wally.toml"
 [dependencies]
@@ -54,20 +31,64 @@ wally install
 ```
 
   </Tab>
+  <Tab value="pesde">
+
+```toml title="pesde.toml"
+[dependencies]
+Thread = { name = "every/thread", version = "^0.1.0" }
+```
+
+```bash
+pesde install
+```
+
+  </Tab>
+  <Tab value="ember">
+
+```toml title="ember.toml"
+[dependencies]
+Thread = { name = "every/thread", version = "^0.1.0" }
+```
+
+```bash
+embr install
+```
+
+  </Tab>
 </Tabs>
 
-## Requiring
+Libraries that use other libraries, like Signal which runs its handlers with Thread, install
+them for you.
 
-Once installed, the library lives in your `Packages` folder. Require it like any other module:
+</Step>
+<Step>
+
+### Require it
+
+The library is installed in your packages folder (`Packages` with wally). Require it like any
+other module:
 
 ```lua
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Thread = require(ReplicatedStorage.Packages.Thread)
+
+Thread.spawn(print, "hello from a recycled thread")
 ```
 
-## Versioning
+</Step>
+</Steps>
 
-Libraries follow [semantic versioning](https://semver.org). While a library is below `1.0.0`, a
-minor bump (`0.1.x` to `0.2.0`) may break its API, so depend on `^0.x.y` and read the release
-notes before upgrading.
+## Versions
+
+Libraries follow [semantic versioning](https://semver.org) and each one is versioned on its own.
+Below `1.0.0`, a minor bump (`0.1.x` to `0.2.0`) may change the API, which is why the examples
+above depend on `^0.1.0`: you get fixes, never breaking changes. Read a library's page before
+moving to its next minor version.
+
+## Next
+
+<Cards>
+  <Card title="Ideology" href="/docs/ideology" description="What every library follows, and where AI is and is not used." />
+  <Card title="Contributing" href="/docs/contributing" description="Add or change a library." />
+</Cards>
