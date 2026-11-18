@@ -1,5 +1,6 @@
-import { loader } from 'fumadocs-core/source';
-import { lucideIconsPlugin } from 'fumadocs-core/source/lucide-icons';
+import { loader, type LoaderPlugin } from 'fumadocs-core/source';
+import { icons } from 'lucide-react';
+import { createElement } from 'react';
 import { docsContentRoute, docsImageRoute, docsRoute } from './shared';
 import { defineDocs } from 'fumadocs-mdx/macro';
 import { metaSchema, pageSchema } from 'fumadocs-core/source/schema';
@@ -23,11 +24,25 @@ const docs = defineDocs({
   },
 });
 
+// The `icon` of pages and folders is a Lucide icon name, or anything else shown as text: library
+// pages use the emoji from their fumablox.toml.
+function iconsPlugin(): LoaderPlugin {
+  const replace = <T extends { icon?: unknown }>(node: T) => {
+    const icon = node.icon;
+    if (typeof icon === 'string') {
+      const Icon = icons[icon as keyof typeof icons];
+      node.icon = Icon ? createElement(Icon) : createElement('span', { className: 'leading-none' }, icon);
+    }
+    return node;
+  };
+  return { name: 'icons', transformPageTree: { file: replace, folder: replace, separator: replace } };
+}
+
 // See https://fumadocs.dev/docs/headless/source-api for more info
 export const source = loader({
   baseUrl: docsRoute,
   source: docs.toFumadocsSource(),
-  plugins: [lucideIconsPlugin()],
+  plugins: [iconsPlugin()],
 });
 
 export function getPageImageUrl(page: (typeof source)['$inferPage']) {

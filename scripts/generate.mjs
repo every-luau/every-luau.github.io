@@ -275,6 +275,7 @@ for (const dir of libraries) {
     outRoot,
     slug,
     title,
+    icon: config.emoji,
     intro,
     outro: examples(dir),
     repository,
@@ -283,6 +284,7 @@ for (const dir of libraries) {
 
   const library = {
     title,
+    emoji: config.emoji,
     slug,
     href,
     description: config.description ?? '',

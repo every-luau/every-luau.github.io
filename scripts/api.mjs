@@ -352,12 +352,13 @@ function classBody(cls, ctx, config, nested, after = []) {
   ];
 }
 
-function filePage(title, classes, ctx, config, { intro, outro, repository, lastModified }) {
+function filePage(title, classes, ctx, config, { icon, intro, outro, repository, lastModified }) {
   const nested = classes.length > 1;
   return [
     '---',
     `title: ${JSON.stringify(title)}`,
     `description: ${JSON.stringify(summary(classes[0].description))}`,
+    ...(icon ? [`icon: ${JSON.stringify(icon)}`] : []),
     ...(repository ? [`repository: ${JSON.stringify(repository)}`] : []),
     ...(lastModified ? [`lastModified: ${JSON.stringify(lastModified)}`] : []),
     '---',
@@ -426,15 +427,16 @@ function layoutChildren(node, dir, pages) {
 }
 
 // The library itself: a single module is one page named after the library. Otherwise it is a
-// folder listing its modules, with the root init.luau first under the library's name.
-function layoutLibrary(root, outRoot, slug, title, pages) {
+// folder listing its modules, with the root init.luau first under the library's name. The
+// library's emoji is the icon of that page or folder in the sidebar.
+function layoutLibrary(root, outRoot, slug, title, pages, icon) {
   if (root.init && isLeaf(root)) {
-    pages.push({ rel: root.init, file: path.join(outRoot, `${slug}.mdx`), title });
+    pages.push({ rel: root.init, file: path.join(outRoot, `${slug}.mdx`), title, icon });
     return;
   }
   if (!root.init && root.dirs.size === 0 && root.files.size === 1) {
     const [rel] = root.files.values();
-    pages.push({ rel, file: path.join(outRoot, `${slug}.mdx`), title });
+    pages.push({ rel, file: path.join(outRoot, `${slug}.mdx`), title, icon });
     return;
   }
 
@@ -444,7 +446,7 @@ function layoutLibrary(root, outRoot, slug, title, pages) {
     pages.push({ rel: root.init, file: path.join(dir, 'index.mdx'), title });
     entries.push('index');
   }
-  writeMeta(dir, { title, pages: [...entries, ...layoutChildren(root, dir, pages)] });
+  writeMeta(dir, { title, ...(icon ? { icon } : {}), pages: [...entries, ...layoutChildren(root, dir, pages)] });
 }
 
 const urlOf = (file, outRoot) =>
@@ -532,7 +534,7 @@ const LINK_BASE = '@@';
 export function writeApiPages(
   extract,
   config,
-  { dir, outRoot, slug, title, intro = [], outro = [], repository, lastModified = new Map() },
+  { dir, outRoot, slug, title, icon, intro = [], outro = [], repository, lastModified = new Map() },
 ) {
   const classes = extract.classes.filter(visible).sort(byName);
   const typeNames = new Map();
@@ -565,7 +567,7 @@ export function writeApiPages(
   }
 
   const pages = [];
-  layoutLibrary(buildTree([...byFile.keys()]), outRoot, slug, title, pages);
+  layoutLibrary(buildTree([...byFile.keys()]), outRoot, slug, title, pages, icon);
 
   const targets = new Map();
   for (const page of pages) {
@@ -586,6 +588,7 @@ export function writeApiPages(
     fs.mkdirSync(path.dirname(page.file), { recursive: true });
     const classes = byFile.get(page.rel);
     const content = filePage(page.title, classes, ctx, config, {
+      icon: page.icon,
       intro: i === 0 ? intro : [],
       outro: i === 0 ? outro : [],
       repository,
