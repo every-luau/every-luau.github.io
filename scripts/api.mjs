@@ -111,6 +111,10 @@ function deprecation(meta, ctx) {
 
 const cell = (text, ctx) => markdown(text, ctx).replace(/\|/g, '\\|').replace(/\s*\n\s*/g, ' ');
 
+// An attribute inside a table cell: a `|` would end the cell in the middle of the expression,
+// so it is written as a JavaScript escape that still reads as `|` once evaluated.
+const cellAttr = (value) => attr(value).replace(/\|/g, '\\u007c');
+
 function table(title, rows, ctx) {
   if (rows.length === 0) return [];
   const withNames = rows.some((row) => row.name !== undefined);
@@ -120,7 +124,7 @@ function table(title, rows, ctx) {
     '',
     header,
     ...rows.map((row) => {
-      const type = row.type ? `<TypeCode type=${attr(row.type)} links=${attr(linksFor(ctx, row.type))} />` : '';
+      const type = row.type ? `<TypeCode type=${cellAttr(row.type)} links=${cellAttr(linksFor(ctx, row.type))} />` : '';
       const cells = [type, cell(row.description, ctx) || '—'];
       if (withNames) cells.unshift(`\`${row.name}${row.optional ? '?' : ''}\``);
       return `| ${cells.join(' | ')} |`;
