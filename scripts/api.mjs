@@ -92,7 +92,9 @@ function badgeLine(meta, config, extra) {
 function sourceUrl(source, config) {
   if (!source || !config.gitRepoUrl) return undefined;
   const repo = config.gitRepoUrl.replace(/\.git$/, '').replace(/\/$/, '');
-  return `${repo}/blob/${config.gitSourceBranch ?? 'main'}/${source.path}#L${source.line}`;
+  // sourcePrefix is the library's folder in its repo, like `libraries/Signal/` in the monorepo.
+  const file = `${config.sourcePrefix ?? ''}${source.path.replaceAll('\\', '/')}`;
+  return `${repo}/blob/${config.gitSourceBranch ?? 'main'}/${file}#L${source.line}`;
 }
 
 function deprecation(meta, ctx) {

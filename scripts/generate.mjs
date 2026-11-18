@@ -4,10 +4,10 @@
 //   node scripts/generate.mjs [librariesDir] [--all]
 //
 // librariesDir holds one folder per library, each with its own fumablox.toml.
-// CI clones every repo of the org into ./libraries; locally, point it at ../libraries.
-// A library is listed once its gitRepoUrl is a public GitHub repository; --all lists
-// the others too, to preview them locally. Versions come from ember, pesde and wally.
-// Set GH_TOKEN to avoid GitHub's rate limit.
+// CI clones the nall monorepo and points it at nall/libraries; locally, point it at ../libraries.
+// A library is listed once its gitRepoUrl is a public GitHub repository and it documents
+// something; --all lists unpublished ones too, to preview them locally. Versions come from
+// ember, pesde and wally. Set GH_TOKEN to avoid GitHub's rate limit.
 
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -117,11 +117,11 @@ async function isOnGitHub(repository) {
 
 // When each source file last changed: its latest commit on GitHub, or in the local clone when
 // the API has nothing (a shallow clone only knows its last commit).
-async function lastModified(repository, dir, files) {
+async function lastModified(repository, prefix, dir, files) {
   const dates = new Map();
   for (const file of files) {
     const commits = repoPath(repository)
-      ? await githubApi(`repos/${repoPath(repository)}/commits?path=${encodeURIComponent(file)}&per_page=1`)
+      ? await githubApi(`repos/${repoPath(repository)}/commits?path=${encodeURIComponent(prefix + file)}&per_page=1`)
       : undefined;
     let date = Array.isArray(commits) ? commits[0]?.commit?.committer?.date : undefined;
     if (!date) {
@@ -134,6 +134,23 @@ async function lastModified(repository, dir, files) {
     if (date) dates.set(file, date);
   }
   return dates;
+}
+
+// Where the library sits in its git checkout, like `libraries/Signal/` in the monorepo; empty when
+// it is the root of its repository or not a git checkout.
+function repoPrefix(dir) {
+  try {
+    return execFileSync('git', ['rev-parse', '--show-prefix'], { cwd: dir, encoding: 'utf8' }).trim();
+  } catch {
+    return '';
+  }
+}
+
+// The library's folder on GitHub: its repository, or its folder inside the monorepo.
+function folderUrl(repository, branch, prefix) {
+  if (!repository || !prefix) return repository;
+  const repo = repository.replace(/\.git$/, '').replace(/\/$/, '');
+  return `${repo}/tree/${branch}/${prefix.replace(/\/$/, '')}`;
 }
 
 // The library's examples/*.luau, one accordion each at the bottom of its first page. The comment at
@@ -232,10 +249,8 @@ for (const dir of libraries) {
     continue;
   }
 
-  const packages = await findPackages(dir);
-
   console.log(`> ${title}`);
-  // Run from the library so source links are relative to its repo root.
+  // Run from the library so source paths are relative to its folder; `prefix` places them in the repo.
   const extractPath = path.join(os.tmpdir(), `fumablox-${slug}.json`);
   execFileSync(process.execPath, [fumablox, 'extract', '--config', 'fumablox.toml', '--out', extractPath], {
     cwd: dir,
@@ -243,17 +258,27 @@ for (const dir of libraries) {
   });
   const extract = JSON.parse(fs.readFileSync(extractPath, 'utf8'));
   fs.rmSync(extractPath, { force: true });
+
+  // Scaffolded libraries of the monorepo have nothing documented until their code lands.
+  if (extract.classes.length === 0) {
+    console.log(`- ${title}: nothing documented yet, skipped`);
+    continue;
+  }
+
+  const prefix = repoPrefix(dir);
+  const repository = folderUrl(config.gitRepoUrl, config.gitSourceBranch ?? 'main', prefix);
+  const packages = await findPackages(dir);
   const intro = installIntro(title, config.gitRepoUrl, packages);
   const sources = [...new Set(extract.classes.map((cls) => cls.source.path.replaceAll('\\', '/')))];
-  const href = writeApiPages(extract, config, {
+  const href = writeApiPages(extract, { ...config, sourcePrefix: prefix }, {
     dir,
     outRoot,
     slug,
     title,
     intro,
     outro: examples(dir),
-    repository: config.gitRepoUrl,
-    lastModified: await lastModified(config.gitRepoUrl, dir, sources),
+    repository,
+    lastModified: await lastModified(config.gitRepoUrl, prefix, dir, sources),
   });
 
   const library = {
@@ -261,7 +286,7 @@ for (const dir of libraries) {
     slug,
     href,
     description: config.description ?? '',
-    repository: config.gitRepoUrl,
+    repository,
     packages,
   };
 

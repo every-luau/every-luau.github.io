@@ -7,7 +7,7 @@ on:
   # Publishing to a registry does not push anything, so check for new releases regularly.
   schedule:
     - cron: "0 */6 * * *"
-  # Sent by each library's CI when its main branch changes.
+  # Sent by the monorepo's CI when its main branch changes.
   repository_dispatch:
     types: [library-updated]
 
@@ -31,23 +31,12 @@ jobs:
           node-version: "20"
           cache: npm
 
-      - name: Clone every library of the org
-        env:
-          GH_TOKEN: ${{ github.token }}
-          OWNER: ${{ github.repository_owner }}
-        run: |
-          mkdir -p libraries
-          gh repo list "$OWNER" --source --no-archived --limit 1000 --json name,isTemplate \
-            --jq '.[] | select(.isTemplate | not) | .name' |
-          while read -r name; do
-            if gh api "repos/$OWNER/$name/contents/fumablox.toml" --silent 2>/dev/null; then
-              git clone --quiet --depth 1 "https://github.com/$OWNER/$name.git" "libraries/$name"
-            fi
-          done
-          ls libraries
+      # Without blobs until they are needed, but with the whole history for when files last changed.
+      - name: Clone the libraries monorepo
+        run: git clone --quiet --filter=blob:none "https://github.com/${{ github.repository_owner }}/nall.git" nall
 
       - run: npm ci
-      - run: npm run generate
+      - run: npm run generate -- nall/libraries
         env:
           GH_TOKEN: ${{ github.token }}
       - run: npm run build
