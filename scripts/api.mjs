@@ -21,11 +21,20 @@ const admonitions = {
 
 const attr = (value) => `{${JSON.stringify(value)}}`;
 
+// fumablox only resolves `[Class:member]` for the library's own classes; this links members of
+// the other libraries, like [Signal:connect], to their heading on that library's page.
+function siblingMemberLinks(text, ctx) {
+  return text.replace(/\[([A-Za-z_]\w*)[.:]([A-Za-z_]\w*)\](?!\()/g, (match, name, member) => {
+    const page = ctx.siblings?.[name];
+    return page ? `${match}(${page}#${member})` : match;
+  });
+}
+
 // Escapes what MDX would parse as JSX outside of code, and turns Moonwave's
 // `:::tip Title` ... `:::` admonitions into callouts.
 function markdown(text, ctx) {
   if (!text) return '';
-  const escaped = rewriteShortLinks(text, ctx)
+  const escaped = rewriteShortLinks(siblingMemberLinks(text, ctx), ctx)
     .split(/(```[\s\S]*?```|`[^`\n]*`)/g)
     .map((part, i) => (i % 2 === 1 ? part : part.replace(/[{}<]/g, (c) => `\\${c}`)))
     .join('');
@@ -534,26 +543,27 @@ const LINK_BASE = '@@';
 // Writes one page per documented source file of a library under `outRoot` (served at /docs),
 // laid out like its source tree. `intro` and `outro` go at the top and bottom of its first
 // page; every page links to `repository` and gets its source file's date from `lastModified`.
+// `siblings` maps the other libraries' names to their pages, for links like [Connection].
 // Returns the url of the first page.
 export function writeApiPages(
   extract,
   config,
-  { dir, outRoot, slug, title, icon, intro = [], outro = [], repository, lastModified = new Map() },
+  { dir, outRoot, slug, title, icon, intro = [], outro = [], repository, lastModified = new Map(), siblings = {} },
 ) {
   const classes = extract.classes.filter(visible).sort(byName);
   const typeNames = new Map();
-  const externals = {};
+  const externals = { ...siblings };
   for (const cls of classes) {
     for (const type of cls.types) typeNames.set(type.name, cls.name);
     Object.assign(externals, cls.externals);
   }
-  for (const pkg of extract.wally?.packages ?? []) externals[pkg.alias] = pkg.documentationUrl;
 
   const ctx = {
     classNames: new Set(classes.map((cls) => cls.name)),
     typeNames,
     memberAnchors: new Map(),
     externals,
+    siblings,
     baseUrl: LINK_BASE,
     robloxLinks: config.robloxLinks ?? true,
     returned: moduleReturns(classes, dir),
