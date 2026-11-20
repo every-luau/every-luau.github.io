@@ -7,7 +7,7 @@
 // CI clones the every monorepo and points it at every/libraries; locally, point it at ../libraries.
 // A library is listed once its gitRepoUrl is a public GitHub repository and it documents
 // something; --all lists unpublished ones too, to preview them locally. Versions come from
-// ember, pesde and wally. Set GH_TOKEN to avoid GitHub's rate limit.
+// ember. Set GH_TOKEN to avoid GitHub's rate limit.
 
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -63,24 +63,6 @@ async function fetchJson(url, headers = {}) {
 // Each registry: the package as the library's manifest declares it, and how to find the latest
 // version published.
 const registries = {
-  wally: {
-    manifest: (dir) => readToml(path.join(dir, 'wally.toml'))?.package,
-    version: async (name) => {
-      const data = await fetchJson(`https://api.wally.run/v1/package-metadata/${name}`);
-      return latest((data?.versions ?? []).map((v) => v.package?.version));
-    },
-    url: (name) => `https://wally.run/package/${name}`,
-    dependency: (alias, name, version) => `${alias} = "${name}@^${version}"`,
-  },
-  pesde: {
-    manifest: (dir) => readToml(path.join(dir, 'pesde.toml')),
-    version: async (name) => {
-      const data = await fetchJson(`https://registry.pesde.dev/v1/packages/${encodeURIComponent(name)}`);
-      return latest(Object.keys(data?.versions ?? {}));
-    },
-    url: (name) => `https://pesde.dev/packages/${name}`,
-    dependency: (alias, name, version) => `${alias} = { name = "${name}", version = "^${version}" }`,
-  },
   ember: {
     manifest: (dir) => readToml(path.join(dir, 'ember.toml'))?.package,
     version: async (name) => {
@@ -237,6 +219,17 @@ const libraries = fs
   .filter((dir) => fs.existsSync(path.join(dir, 'fumablox.toml')))
   .sort();
 
+// Libraries with documented code, by name, so a library mentioning another one (like [Connection]
+// in Signal) links to its page here.
+const documented = (dir) =>
+  fs.existsSync(path.join(dir, 'src')) &&
+  fs
+    .readdirSync(path.join(dir, 'src'), { recursive: true })
+    .some((file) => file.endsWith('.luau') && /@class\b/.test(fs.readFileSync(path.join(dir, 'src', file), 'utf8')));
+const pagesOf = Object.fromEntries(
+  libraries.filter(documented).map((dir) => [path.basename(dir), `/docs/${slugify(path.basename(dir))}`]),
+);
+
 const list = [];
 
 for (const dir of libraries) {
@@ -280,6 +273,7 @@ for (const dir of libraries) {
     outro: examples(dir),
     repository,
     lastModified: await lastModified(config.gitRepoUrl, prefix, dir, sources),
+    siblings: Object.fromEntries(Object.entries(pagesOf).filter(([name]) => name !== path.basename(dir))),
   });
 
   const library = {

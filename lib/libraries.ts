@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-export type Registry = 'ember' | 'pesde' | 'wally';
+export type Registry = 'ember';
 
 export interface Library {
   title: string;

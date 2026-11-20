@@ -45,8 +45,6 @@ Every library lives in the [every](https://github.com/every-luau/every) reposito
     <Folder name="examples" />
     <File name="fumablox.toml" />
     <File name="ember.toml" />
-    <File name="pesde.toml" />
-    <File name="wally.toml" />
     <File name="default.project.json" />
   </Folder>
 </Files>
@@ -57,10 +55,10 @@ Every library lives in the [every](https://github.com/every-luau/every) reposito
 | `tests` | Its [lest](https://github.com/lest-luau/lest) specs. |
 | `examples` | Scripts shown at the bottom of the library's page. |
 | `fumablox.toml` | Its `title`, `description` and `emoji` on this site, and how its API reference is generated. |
-| `ember.toml`, `pesde.toml`, `wally.toml` | The package on each registry. They always share the same version. |
+| `ember.toml` | The package on ember: its name, version and dependencies. |
 
 Libraries require each other as siblings (`script.Parent.Thread`), the way package managers
-install them. Add the dependency to all three manifests.
+install them. Add the dependency to its `ember.toml`.
 
 ## Commands
 
@@ -72,8 +70,8 @@ just docs Signal           # check its documentation comments
 just sourcemap             # let luau-lsp resolve requires between libraries
 just site                  # generate the docs and run this site locally
 just versions              # every library's version
-just bump Signal minor     # bump its version in all three manifests
-just release Signal patch  # bump, test and publish to every registry
+just bump Signal minor     # bump its version
+just release Signal patch  # bump, test and publish to ember
 ```
 
 ## Documenting
@@ -108,5 +106,4 @@ CI runs the tests and checks the docs of every library on each push and pull req
 pass before a change is merged.
 
 Once merged, `just release <Name> <major|minor|patch>` bumps the version, tests the library and
-publishes it to ember, pesde and wally. The site is rebuilt when CI passes on `main`, so a
-library shows up here as soon as it has documented code and a `fumablox.toml`.
+publishes it to ember. The site is rebuilt when CI passes on `main`, so a library shows up here as soon as it has documented code and a `fumablox.toml`.

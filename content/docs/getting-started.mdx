@@ -1,6 +1,6 @@
 ---
 title: Getting Started
-description: Install a library with wally, pesde or ember and require it.
+description: Install a library with ember and require it.
 icon: Rocket
 ---
 
@@ -9,41 +9,14 @@ icon: Rocket
 
 ### Pick a library
 
-Every library is published under the same name on each registry: `every/` followed by the
-library's name in lowercase, for example `every/thread` or `every/signal`. Its page, under
-**Libraries** in the sidebar, shows the exact name and latest version on each registry.
+Every library is published as `every/` followed by its name in lowercase, for example
+`every/thread` or `every/signal`. Its page, under **Libraries** in the sidebar, shows the
+exact name and latest version on ember.
 
 </Step>
 <Step>
 
 ### Add it to your manifest
-
-<Tabs items={['wally', 'pesde', 'ember']}>
-  <Tab value="wally">
-
-```toml title="wally.toml"
-[dependencies]
-Thread = "every/thread@^0.1.0"
-```
-
-```bash
-wally install
-```
-
-  </Tab>
-  <Tab value="pesde">
-
-```toml title="pesde.toml"
-[dependencies]
-Thread = { name = "every/thread", version = "^0.1.0" }
-```
-
-```bash
-pesde install
-```
-
-  </Tab>
-  <Tab value="ember">
 
 ```toml title="ember.toml"
 [dependencies]
@@ -54,9 +27,6 @@ Thread = { name = "every/thread", version = "^0.1.0" }
 embr install
 ```
 
-  </Tab>
-</Tabs>
-
 Libraries that use other libraries, like Signal which runs its handlers with Thread, install
 them for you.
 
@@ -65,8 +35,7 @@ them for you.
 
 ### Require it
 
-The library is installed in your packages folder (`Packages` with wally). Require it like any
-other module:
+The library is installed in your packages folder. Require it like any other module:
 
 ```lua
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
