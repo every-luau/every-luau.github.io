@@ -17,9 +17,9 @@ so they stay in one library
 ## Dependencies
 
 libraries build on each other to get the best API possible: `Observable` uses `Signal`, `Connection` and
-`Void`, etc. a library can also depend on a package from outside every, the way `Weight` uses `[rbx-cryptography](https://github.com/daily3014/rbx-cryptography)`
+`Void`, etc. a library can also depend on a package from outside every, the way `Weight` uses [`rbx-cryptography`](https://github.com/daily3014/rbx-cryptography)
 
-## Simplest API
+## Simplest API 
 
 a library gives its users the functions they need, so they do not have to require another package
 just to use it. `Signal:connect` hands back a `Connection`, for example, but you never require

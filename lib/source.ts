@@ -9,10 +9,11 @@ import { z } from 'zod';
 const docs = defineDocs({
   dir: 'content/docs',
   docs: {
-    // Library pages, written by scripts/generate.mjs, also carry their repository and the date
-    // their source file last changed.
+    // Library pages, written by scripts/generate.mjs, also carry their repository, the link to
+    // their source and the date their source file last changed.
     schema: pageSchema.extend({
       repository: z.string().optional(),
+      source: z.string().optional(),
       lastModified: z.string().optional(),
     }),
     postprocess: {
@@ -24,8 +25,7 @@ const docs = defineDocs({
   },
 });
 
-// The `icon` of pages and folders is a Lucide icon name, or anything else shown as text: library
-// pages use the emoji from their fumablox.toml.
+// The `icon` of pages and folders is a Lucide icon name, or anything else shown as text.
 function iconsPlugin(): LoaderPlugin {
   const replace = <T extends { icon?: unknown }>(node: T) => {
     const icon = node.icon;

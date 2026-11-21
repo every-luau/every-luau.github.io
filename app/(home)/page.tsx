@@ -70,15 +70,6 @@ function LibraryCard({ library }: { library: Library }) {
       className="group flex flex-col gap-3 rounded-xl border bg-fd-card p-5 transition-colors hover:border-fd-primary/50 hover:bg-fd-accent/50"
     >
       <div className="flex items-center gap-3">
-        {library.emoji ? (
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-fd-primary/10 text-lg">
-            {library.emoji}
-          </span>
-        ) : (
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-fd-primary/10 font-mono text-sm font-semibold text-fd-primary">
-            {library.title.slice(0, 2)}
-          </span>
-        )}
         <div className="min-w-0 flex-1">
           <p className="truncate font-semibold">{library.title}</p>
           {version && <p className="font-mono text-xs text-fd-muted-foreground">v{version}</p>}

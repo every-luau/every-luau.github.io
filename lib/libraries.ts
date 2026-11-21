@@ -5,8 +5,6 @@ export type Registry = 'ember';
 
 export interface Library {
   title: string;
-  // From `emoji` in the library's fumablox.toml.
-  emoji?: string;
   slug: string;
   href: string;
   description: string;

@@ -341,9 +341,14 @@ function summarySection(cls, others, ctx, h) {
 
 function classBody(cls, ctx, config, nested, after = []) {
   const h = layout(cls, nested);
+  // The source of a single class is linked next to the page's buttons, see `source` in filePage.
+  const classBadges = badges(cls);
   const intro = nested
     ? [`## ${cls.name} [#${cls.name}]`, '', ...badgeLine(cls, config), markdown(cls.description, ctx)]
-    : [...badgeLine(cls, config), markdown(rest(cls.description), ctx)];
+    : [
+        ...(classBadges.length > 0 ? [`<Badges items=${attr(classBadges)} />`, ''] : []),
+        markdown(rest(cls.description), ctx),
+      ];
   const functions = cls.functions.filter(visible);
   const returned = [...functions, ...cls.types.filter(visible)].filter((item) => ctx.returned.has(item));
   const others = functions.filter((fn) => !ctx.returned.has(fn));
@@ -367,11 +372,13 @@ function classBody(cls, ctx, config, nested, after = []) {
 
 function filePage(title, classes, ctx, config, { icon, intro, outro, repository, lastModified }) {
   const nested = classes.length > 1;
+  const source = nested ? undefined : sourceUrl(classes[0].source, config);
   return [
     '---',
     `title: ${JSON.stringify(title)}`,
     `description: ${JSON.stringify(summary(classes[0].description))}`,
     ...(icon ? [`icon: ${JSON.stringify(icon)}`] : []),
+    ...(source ? [`source: ${JSON.stringify(source)}`] : []),
     ...(repository ? [`repository: ${JSON.stringify(repository)}`] : []),
     ...(lastModified ? [`lastModified: ${JSON.stringify(lastModified)}`] : []),
     '---',
@@ -440,8 +447,7 @@ function layoutChildren(node, dir, pages) {
 }
 
 // The library itself: a single module is one page named after the library. Otherwise it is a
-// folder listing its modules, with the root init.luau first under the library's name. The
-// library's emoji is the icon of that page or folder in the sidebar.
+// folder listing its modules, with the root init.luau first under the library's name.
 function layoutLibrary(root, outRoot, slug, title, pages, icon) {
   if (root.init && isLeaf(root)) {
     pages.push({ rel: root.init, file: path.join(outRoot, `${slug}.mdx`), title, icon });

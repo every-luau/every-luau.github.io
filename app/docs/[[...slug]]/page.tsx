@@ -1,7 +1,6 @@
 import { getPageImageUrl, getPageMarkdownUrl, source } from '@/lib/source';
 import {
   DocsBody,
-  DocsDescription,
   DocsPage,
   DocsTitle,
   MarkdownCopyButton,
@@ -100,12 +99,20 @@ export default async function Page(props: PageProps<'/docs/[[...slug]]'>) {
 
   return (
     <DocsPage toc={decorateToc(page.data.toc, kinds)} full={page.data.full} footer={{ enabled: !repository }}>
-      <DocsTitle>
-        {repository && page.data.icon && <span className="me-2">{page.data.icon}</span>}
-        {page.data.title}
-      </DocsTitle>
-      <DocsDescription className="mb-0">{page.data.description}</DocsDescription>
-      <div className="flex flex-row gap-2 items-center border-b pb-6">
+      {/* The title, with a link to its source on the right when there is one, then the buttons. */}
+      <div className="flex flex-row items-center gap-2">
+        <DocsTitle>{page.data.title}</DocsTitle>
+        {page.data.source && (
+          <a
+            href={page.data.source}
+            title="View source"
+            className="ms-auto rounded-md px-1.5 py-0.5 font-mono text-xs text-fd-muted-foreground transition-colors hover:bg-fd-accent hover:text-fd-foreground"
+          >
+            {'</>'}
+          </a>
+        )}
+      </div>
+      <div className="flex flex-row flex-wrap items-center gap-2 border-b pb-6">
         <MarkdownCopyButton markdownUrl={markdownUrl} />
         <ViewOptionsPopover markdownUrl={markdownUrl} />
         {repository && (
@@ -123,6 +130,8 @@ export default async function Page(props: PageProps<'/docs/[[...slug]]'>) {
         )}
       </div>
       <DocsBody>
+        {/* The description reads like the text under it. */}
+        {page.data.description && <p>{page.data.description}</p>}
         <MDX
           components={getMDXComponents({
             // this allows you to link to other pages with relative file paths
