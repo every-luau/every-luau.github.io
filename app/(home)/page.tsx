@@ -19,7 +19,7 @@ export default function HomePage() {
         <div className="flex flex-wrap gap-3">
           <Link
             href="/docs/getting-started"
-            className="inline-flex items-center gap-2 rounded-full bg-fd-primary px-5 py-2.5 text-sm font-medium text-fd-primary-foreground"
+            className="get-started inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium text-fd-primary-foreground"
           >
             Get started
             <ArrowRight className="size-4" />

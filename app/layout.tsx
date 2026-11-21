@@ -1,5 +1,6 @@
 import { Figtree, JetBrains_Mono } from 'next/font/google';
 import { Provider } from '@/components/provider';
+import { PageTransition } from '@/components/page-transition';
 import type { Metadata } from 'next';
 import { appName } from '@/lib/shared';
 import './global.css';
@@ -27,7 +28,9 @@ export default function Layout({ children }: LayoutProps<'/'>) {
   return (
     <html lang="en" className={`${sans.variable} ${mono.variable} ${sans.className}`} suppressHydrationWarning>
       <body className="flex flex-col min-h-screen">
-        <Provider>{children}</Provider>
+        <Provider>
+          <PageTransition>{children}</PageTransition>
+        </Provider>
       </body>
     </html>
   );
