@@ -20,7 +20,7 @@ latest version on ember
 
 ```toml title="ember.toml"
 [dependencies]
-Thread = { name = "every/thread", version = "^0.1.0" }
+Thread = { name = "every/thread", version = "^0.0.1" }
 ```
 
 ```bash
@@ -51,8 +51,9 @@ Thread.spawn(print, "hello from a recycled thread")
 ## Versions
 
 libraries follow [semantic versioning](https://semver.org), and each one has its own version.
-below `1.0.0`, a minor bump (`0.1.x` to `0.2.0`) can break the API, so the examples above depend on
-`^0.1.0` to get fixes only. read a library's page before moving to its next minor version
+every library starts at `0.0.1`. below `0.1.0` any bump can break the API, so `^0.0.1` stays on
+`0.0.1`. from `0.1.0` to `1.0.0`, only a minor bump (`0.1.x` to `0.2.0`) can break it, and `^0.1.0`
+gets fixes only. read a library's page before you update it
 
 ## Next
 
