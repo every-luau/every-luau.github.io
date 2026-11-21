@@ -9,9 +9,9 @@ icon: Rocket
 
 ### Pick a library
 
-Every library is published as `every/` followed by its name in lowercase, for example
-`every/thread` or `every/signal`. Its page, under **Libraries** in the sidebar, shows the
-exact name and latest version on ember.
+every library is published as `every/` followed by its name in kebab-case, like `every/thread` or
+`every/better-scale`. its page, under **Libraries** in the sidebar, shows the exact name and the
+latest version on ember
 
 </Step>
 <Step>
@@ -27,15 +27,15 @@ Thread = { name = "every/thread", version = "^0.1.0" }
 embr install
 ```
 
-Libraries that use other libraries, like Signal which runs its handlers with Thread, install
-them for you.
+the libraries it depends on are installed with it. `Signal` runs its handlers with `Thread`, so
+installing `Signal` also installs `Thread`
 
 </Step>
 <Step>
 
 ### Require it
 
-The library is installed in your packages folder. Require it like any other module:
+the library lands in your packages folder. require it like any other module:
 
 ```lua
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -50,10 +50,9 @@ Thread.spawn(print, "hello from a recycled thread")
 
 ## Versions
 
-Libraries follow [semantic versioning](https://semver.org) and each one is versioned on its own.
-Below `1.0.0`, a minor bump (`0.1.x` to `0.2.0`) may change the API, which is why the examples
-above depend on `^0.1.0`: you get fixes, never breaking changes. Read a library's page before
-moving to its next minor version.
+libraries follow [semantic versioning](https://semver.org), and each one has its own version.
+below `1.0.0`, a minor bump (`0.1.x` to `0.2.0`) can break the API, so the examples above depend on
+`^0.1.0` to get fixes only. read a library's page before moving to its next minor version
 
 ## Next
 
