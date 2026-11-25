@@ -261,7 +261,7 @@ export async function Summary({ items, links }: { items: SummaryItem[]; links?: 
               <span
                 key={badge.label}
                 className={cn(
-                  'pointer-events-none relative shrink-0 rounded-md border px-1.5 py-0.5 font-mono text-[11px] font-medium',
+                  'pointer-events-none relative shrink-0 rounded-md border px-1 py-px font-mono text-[11px] leading-4 font-medium',
                   badgeVariants[badge.variant ?? 'default'],
                 )}
               >
@@ -289,7 +289,7 @@ export function Badges({
         <span
           key={item.label}
           className={cn(
-            'rounded-md border px-1.5 py-0.5 font-mono text-[11px] font-medium',
+            'rounded-md border px-1 py-px font-mono text-[11px] leading-4 font-medium',
             badgeVariants[item.variant ?? 'default'],
           )}
         >

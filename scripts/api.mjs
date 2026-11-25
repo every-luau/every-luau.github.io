@@ -157,15 +157,26 @@ const visible = (member) => !member.private && !member.ignore;
 
 // Heading levels and anchor ids: a page with several classes nests each one a level deeper
 // and prefixes its anchors with the class name.
-const layout = (cls, nested) => ({
-  section: nested ? '###' : '##',
-  member: nested ? '####' : '###',
-  id: (name) => (nested ? `${cls.name}-${name}` : name),
-});
+// A method named like another member of its class, like `Stream.property` and `:property`, gets
+// `-method` after its anchor so both headings keep their own.
+function layout(cls, nested) {
+  const id = (name) => (nested ? `${cls.name}-${name}` : name);
+  const taken = new Set(
+    [...cls.types, ...cls.properties, ...cls.events, ...cls.constants, ...cls.enums, ...cls.functions]
+      .filter((member) => visible(member) && member.functionKind !== 'method')
+      .map((member) => member.name),
+  );
+  return {
+    section: nested ? '###' : '##',
+    member: nested ? '####' : '###',
+    id,
+    fnId: (fn) => id(fn.functionKind === 'method' && taken.has(fn.name) ? `${fn.name}-method` : fn.name),
+  };
+}
 
 // A member's heading stays plain text: the docs page adds the icon of its kind (see
 // app/docs/[[...slug]]/page.tsx), since headings also become the table of contents.
-const memberHeading = (h, label, name) => `${h.member} ${label} [#${h.id(name)}]`;
+const memberHeading = (h, label, name, id = h.id(name)) => `${h.member} ${label} [#${id}]`;
 
 function typeSection(cls, ctx, config, h) {
   const types = cls.types.filter(visible).sort(byName);
@@ -291,7 +302,7 @@ function functionSection(title, fns, cls, ctx, config, h) {
     ...fns.sort(byName).flatMap((fn) => {
       const separator = fn.functionKind === 'method' ? ':' : '.';
       return [
-        memberHeading(h, `${separator}${fn.name}`, fn.name),
+        memberHeading(h, `${separator}${fn.name}`, fn.name, h.fnId(fn)),
         '',
         ...functionBody(fn, { owner: cls.name, separator, name: fn.name }, ctx, config),
       ];
@@ -316,7 +327,7 @@ function summarySection(cls, others, ctx, h) {
   const fn = (kind) => (member) => ({
     kind,
     name: member.name,
-    href: ctx.split.get(member)?.url ?? `#${h.id(member.name)}`,
+    href: ctx.split.get(member)?.url ?? `#${h.fnId(member)}`,
     params: member.params.map((p) => ({ name: p.optional ? `${p.name}?` : p.name, type: p.luaType })),
     returns: member.returns.map((r) => r.luaType ?? 'any'),
     badges: summaryBadges(member),

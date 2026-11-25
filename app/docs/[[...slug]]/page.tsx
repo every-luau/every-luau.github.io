@@ -64,7 +64,7 @@ function decorateToc(toc: TOCItemType[], kinds: Map<string, MemberKind>): TOCIte
     return {
       ...item,
       title: (
-        <span className="inline-flex items-center gap-1.5">
+        <span key={item.url} className="inline-flex items-center gap-1.5">
           <KindIcon kind={kind} />
           <span className="font-mono text-[0.8125rem]">{name}</span>
         </span>
