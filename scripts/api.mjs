@@ -68,10 +68,20 @@ function rest(text) {
   return summary(text) ? paragraphs.slice(1).join('\n\n') : text ?? '';
 }
 
+// A Roblox enum like `Enum.PreferredInput` links as a whole to its own page, instead of `Enum`
+// linking to the Enum datatype.
+const ROBLOX_ENUM = /\bEnum\.([A-Za-z_]\w*)/g;
+
 function linksFor(ctx, ...types) {
   const links = {};
   for (const type of types) {
-    for (const [ident] of (type ?? '').matchAll(/[A-Za-z_][\w]*/g)) {
+    if (ctx.robloxLinks) {
+      for (const [whole, name] of (type ?? '').matchAll(ROBLOX_ENUM)) {
+        links[whole] = `https://create.roblox.com/docs/reference/engine/enums/${name}`;
+      }
+    }
+    const rest = ctx.robloxLinks ? (type ?? '').replace(ROBLOX_ENUM, '') : type ?? '';
+    for (const [ident] of rest.matchAll(/[A-Za-z_][\w]*/g)) {
       const href = resolveLink(ident, ctx);
       if (href) links[ident] = href;
     }
@@ -419,6 +429,7 @@ function functionPage(fn, cls, ctx, config, { repository, lastModified }) {
     .replace(/\n{3,}/g, '\n\n');
 }
 
+const kebab = (name) => name.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
 const isInit = (name) => /^init\.luau?$/.test(name);
 const stem = (name) => name.replace(/\.luau?$/, '');
 const byKey = ([a], [b]) => a.localeCompare(b);
@@ -452,11 +463,14 @@ function writeMeta(dir, meta) {
 // folder module with children becomes a Fumadocs folder whose index.mdx is the module itself,
 // so clicking the folder opens it; one without children is a plain page. Collects every page
 // as { rel, file, title } and returns the entries for the parent's meta.json.
-function layoutChildren(node, dir, pages) {
+function layoutChildren(node, dir, pages, names) {
   const entries = [];
   for (const [name, rel] of [...node.files].sort(byKey)) {
-    pages.push({ rel, file: path.join(dir, `${stem(name)}.mdx`), title: stem(name) });
-    entries.push(stem(name));
+    // a file holding one class is named after it, like `LifeStream` for Stream's core.luau
+    const title = names.get(rel) ?? stem(name);
+    const page = names.has(rel) ? kebab(title) : stem(name);
+    pages.push({ rel, file: path.join(dir, `${page}.mdx`), title });
+    entries.push(page);
   }
   for (const [name, child] of [...node.dirs].sort(byKey)) {
     if (child.init && isLeaf(child)) {
@@ -464,7 +478,7 @@ function layoutChildren(node, dir, pages) {
     } else {
       const into = path.join(dir, name);
       if (child.init) pages.push({ rel: child.init, file: path.join(into, 'index.mdx'), title: name });
-      writeMeta(into, { title: name, pages: layoutChildren(child, into, pages) });
+      writeMeta(into, { title: name, pages: layoutChildren(child, into, pages, names) });
     }
     entries.push(name);
   }
@@ -473,7 +487,7 @@ function layoutChildren(node, dir, pages) {
 
 // The library itself: a single module is one page named after the library. Otherwise it is a
 // folder listing its modules, with the root init.luau first under the library's name.
-function layoutLibrary(root, outRoot, slug, title, pages, icon) {
+function layoutLibrary(root, outRoot, slug, title, pages, icon, names) {
   if (root.init && isLeaf(root)) {
     pages.push({ rel: root.init, file: path.join(outRoot, `${slug}.mdx`), title, icon });
     return;
@@ -490,7 +504,7 @@ function layoutLibrary(root, outRoot, slug, title, pages, icon) {
     pages.push({ rel: root.init, file: path.join(dir, 'index.mdx'), title });
     entries.push('index');
   }
-  writeMeta(dir, { title, ...(icon ? { icon } : {}), pages: [...entries, ...layoutChildren(root, dir, pages)] });
+  writeMeta(dir, { title, ...(icon ? { icon } : {}), pages: [...entries, ...layoutChildren(root, dir, pages, names)] });
 }
 
 const urlOf = (file, outRoot) =>
@@ -633,7 +647,12 @@ export function writeApiPages(
   ctx.split = new Map();
 
   const pages = [];
-  layoutLibrary(buildTree([...byFile.keys(), ...splitByFile.keys()]), outRoot, slug, title, pages, icon);
+  // the page of a file that is not a module's init and holds a single class takes that class's name
+  const names = new Map();
+  for (const [rel, fileClasses] of byFile) {
+    if (!isInit(path.basename(rel)) && fileClasses.length === 1) names.set(rel, fileClasses[0].name);
+  }
+  layoutLibrary(buildTree([...byFile.keys(), ...splitByFile.keys()]), outRoot, slug, title, pages, icon, names);
 
   const targets = new Map();
   // `Class.member` of the functions with a page of their own, to their page

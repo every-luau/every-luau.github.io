@@ -56,19 +56,39 @@ async function luau(prefix: string, body: string, suffix = ''): Promise<Segment[
   return segments;
 }
 
-// Renders segments, turning identifiers found in `links` into links of the same color.
+// Where each qualified name of `links`, like `Enum.PreferredInput`, sits in `text`, since Shiki
+// splits it into several segments.
+function qualifiedRanges(text: string, links: Links) {
+  const ranges: { from: number; to: number; href: string }[] = [];
+  for (const [name, href] of Object.entries(links)) {
+    if (!name.includes('.')) continue;
+    const pattern = new RegExp(`(?<![\\w.])${name.replace(/\./g, '\\.')}(?!\\w)`, 'g');
+    for (const match of text.matchAll(pattern)) ranges.push({ from: match.index, to: match.index + name.length, href });
+  }
+  return ranges;
+}
+
+// Renders segments, turning identifiers found in `links` into links of the same color. A
+// qualified name like `Enum.PreferredInput` links as a whole.
 function Colored({ segments, links = {}, className }: { segments: Segment[]; links?: Links; className?: string }) {
+  const ranges = qualifiedRanges(segments.map((segment) => segment.text).join(''), links);
+  let offset = 0;
   return segments.map((segment, i) => {
     const style = { '--l': segment.light, '--d': segment.dark } as CSSProperties;
-    const parts = segment.text.split(/([A-Za-z_]\w*)/).map((part, j) =>
-      links[part] ? (
-        <a key={j} href={links[part]} className="underline decoration-dotted underline-offset-2 hover:decoration-solid">
+    let position = offset;
+    offset += segment.text.length;
+    const parts = segment.text.split(/([A-Za-z_]\w*)/).map((part, j) => {
+      const from = position;
+      position += part.length;
+      const href = ranges.find((range) => from >= range.from && from + part.length <= range.to)?.href ?? links[part];
+      return href && part !== '' ? (
+        <a key={j} href={href} className="underline decoration-dotted underline-offset-2 hover:decoration-solid">
           {part}
         </a>
       ) : (
         part
-      ),
-    );
+      );
+    });
     return (
       <span key={i} style={style} className={cn(segment.light && 'text-(--l) dark:text-(--d)', className)}>
         {parts}
