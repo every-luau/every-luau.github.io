@@ -1,4 +1,4 @@
 {
   "title": "Docs",
-  "pages": ["index", "getting-started", "ideology", "contributing", "---Libraries---", "...(libraries)"]
+  "pages": ["overview", "getting-started", "ideology", "contributing", "---Libraries---", "...(libraries)"]
 }

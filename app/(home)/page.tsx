@@ -18,7 +18,7 @@ export default function HomePage() {
         </p>
         <div className="flex flex-wrap gap-3">
           <Link
-            href="/docs/getting-started"
+            href="/getting-started"
             className="get-started inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium text-fd-primary-foreground"
           >
             Get started

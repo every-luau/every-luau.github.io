@@ -16,7 +16,7 @@ import { createRelativeLink } from 'fumadocs-ui/mdx';
 import { isValidElement, type ComponentProps, type ReactNode } from 'react';
 import type { TOCItemType } from 'fumadocs-core/toc';
 
-// A docs page, whether it is served under /docs or at the root like a library (see lib/source.ts).
+// A docs page, served at the root by app/(docs)/[...slug]/page.tsx.
 // The sections scripts/api.mjs writes, and what kind of member each heading under them is.
 const sectionKinds: Record<string, MemberKind> = {
   Types: 'type',

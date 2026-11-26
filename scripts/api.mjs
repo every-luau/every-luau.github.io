@@ -184,7 +184,7 @@ function layout(cls, nested) {
 }
 
 // A member's heading stays plain text: the docs page adds the icon of its kind (see
-// app/docs/[[...slug]]/page.tsx), since headings also become the table of contents.
+// lib/docs-page.tsx), since headings also become the table of contents.
 function memberHeading(h, label, name, id = h.id(name)) {
   heading = id;
   return `${h.member} ${label} [#${id}]`;

@@ -1,8 +1,7 @@
 import { loader, type LoaderPlugin } from 'fumadocs-core/source';
 import { icons } from 'lucide-react';
 import { createElement } from 'react';
-import { docsContentRoute, docsImageRoute, docsRoute } from './shared';
-import { getLibraries } from './libraries';
+import { docsContentRoute, docsImageRoute } from './shared';
 import { defineDocs } from 'fumadocs-mdx/macro';
 import { metaSchema, pageSchema } from 'fumadocs-core/source/schema';
 import { z } from 'zod';
@@ -43,19 +42,12 @@ function iconsPlugin(): LoaderPlugin {
   return { name: 'icons', transformPageTree: { file: replace, folder: replace, separator: replace } };
 }
 
-// The pages of a library, which scripts/generate.mjs writes under content/docs/(libraries), start
-// with its slug.
-const librarySlugs = new Set(getLibraries().map((library) => library.slug));
-
-export function isLibrary(slugs: string[] | undefined): boolean {
-  return slugs !== undefined && slugs.length > 0 && librarySlugs.has(slugs[0]);
-}
-
 // See https://fumadocs.dev/docs/headless/source-api for more info
 export const source = loader({
-  baseUrl: docsRoute,
-  // A library is at the root, like /clock, and every other page under /docs.
-  url: (slugs) => (isLibrary(slugs) ? `/${slugs.join('/')}` : [docsRoute, ...slugs].join('/')),
+  baseUrl: '/',
+  // Every page is at the root, like /clock or /ideology. The overview is /overview, since / is the
+  // home page.
+  url: (slugs) => `/${slugs.join('/')}`,
   source: docs.toFumadocsSource(),
   plugins: [iconsPlugin()],
 });
