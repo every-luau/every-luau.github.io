@@ -2,6 +2,7 @@ import { loader, type LoaderPlugin } from 'fumadocs-core/source';
 import { icons } from 'lucide-react';
 import { createElement } from 'react';
 import { docsContentRoute, docsImageRoute, docsRoute } from './shared';
+import { getLibraries } from './libraries';
 import { defineDocs } from 'fumadocs-mdx/macro';
 import { metaSchema, pageSchema } from 'fumadocs-core/source/schema';
 import { z } from 'zod';
@@ -10,11 +11,15 @@ const docs = defineDocs({
   dir: 'content/docs',
   docs: {
     // Library pages, written by scripts/generate.mjs, also carry their repository, the link to
-    // their source and the date their source file last changed.
+    // their source, the date their source file last changed and the badges of each member, by the
+    // id of its heading, for the table of contents.
     schema: pageSchema.extend({
       repository: z.string().optional(),
       source: z.string().optional(),
       lastModified: z.string().optional(),
+      memberTags: z
+        .record(z.string(), z.array(z.object({ label: z.string(), variant: z.string().optional() })))
+        .optional(),
     }),
     postprocess: {
       includeProcessedMarkdown: true,
@@ -38,12 +43,24 @@ function iconsPlugin(): LoaderPlugin {
   return { name: 'icons', transformPageTree: { file: replace, folder: replace, separator: replace } };
 }
 
+// The pages of a library, which scripts/generate.mjs writes under content/docs/(libraries), start
+// with its slug.
+const librarySlugs = new Set(getLibraries().map((library) => library.slug));
+
+export function isLibrary(slugs: string[] | undefined): boolean {
+  return slugs !== undefined && slugs.length > 0 && librarySlugs.has(slugs[0]);
+}
+
 // See https://fumadocs.dev/docs/headless/source-api for more info
 export const source = loader({
   baseUrl: docsRoute,
+  // A library is at the root, like /clock, and every other page under /docs.
+  url: (slugs) => (isLibrary(slugs) ? `/${slugs.join('/')}` : [docsRoute, ...slugs].join('/')),
   source: docs.toFumadocsSource(),
   plugins: [iconsPlugin()],
 });
+
+export type DocsPageType = (typeof source)['$inferPage'];
 
 export function getPageImageUrl(page: (typeof source)['$inferPage']) {
   const segments = [...page.slugs, 'image.png'];

@@ -20,6 +20,21 @@ const badgeVariants = {
 
 export type BadgeVariant = keyof typeof badgeVariants;
 
+// One badge. `compact` is the size used in the table of contents.
+export function Tag({ label, variant, compact }: { label: string; variant?: string; compact?: boolean }) {
+  return (
+    <span
+      className={cn(
+        'shrink-0 rounded-md border font-mono font-medium',
+        compact ? 'px-1 text-[10px] leading-3.5' : 'px-1 py-px text-[11px] leading-4',
+        badgeVariants[(variant ?? 'default') as BadgeVariant] ?? badgeVariants.default,
+      )}
+    >
+      {label}
+    </span>
+  );
+}
+
 // Types are colored by Shiki with the same themes as the code blocks, so signatures and code share
 // one palette. Each piece is highlighted inside some Luau around it (`type _ = ...`) to get the
 // colors it has in a type position.
@@ -286,15 +301,7 @@ export function Badges({
   return (
     <div className="not-prose -mt-2 mb-4 flex flex-wrap items-center gap-1.5">
       {items.map((item) => (
-        <span
-          key={item.label}
-          className={cn(
-            'rounded-md border px-1 py-px font-mono text-[11px] leading-4 font-medium',
-            badgeVariants[item.variant ?? 'default'],
-          )}
-        >
-          {item.label}
-        </span>
+        <Tag key={item.label} label={item.label} variant={item.variant} />
       ))}
       {source && (
         <a

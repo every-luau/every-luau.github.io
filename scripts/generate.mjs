@@ -227,7 +227,7 @@ const documented = (dir) =>
     .readdirSync(path.join(dir, 'src'), { recursive: true })
     .some((file) => file.endsWith('.luau') && /@class\b/.test(fs.readFileSync(path.join(dir, 'src', file), 'utf8')));
 const pagesOf = Object.fromEntries(
-  libraries.filter(documented).map((dir) => [path.basename(dir), `/docs/${slugify(path.basename(dir))}`]),
+  libraries.filter(documented).map((dir) => [path.basename(dir), `/${slugify(path.basename(dir))}`]),
 );
 
 const list = [];
